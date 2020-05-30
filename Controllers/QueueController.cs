@@ -15,7 +15,10 @@ namespace Extractt.Controllers
         private readonly ProcessDocument _processDocument;
         private readonly IBackgroundJobClient _backgroundJobs;
 
-        public QueueController(ILogger<QueueController> logger, ProcessDocument processDocument, IBackgroundJobClient backgroundJobs)
+        public QueueController(
+            ILogger<QueueController> logger,
+            ProcessDocument processDocument,
+            IBackgroundJobClient backgroundJobs)
         {
             _logger = logger;
             _processDocument = processDocument;
@@ -29,11 +32,11 @@ namespace Extractt.Controllers
         }
 
         [HttpPost]
-        public IActionResult Post(NewItemDto dto)
+        public IActionResult Post(NewItemRequest dto)
         {
             _logger.LogInformation("New request");
 
-            _backgroundJobs.Schedule(() => _processDocument.Process(dto), TimeSpan.FromSeconds(30));
+            _backgroundJobs.Enqueue(() => _processDocument.Process(dto));
 
             return Ok();
         }

@@ -34,10 +34,8 @@ namespace Extractt
                     QueuePollInterval = TimeSpan.Zero,
                     UseRecommendedIsolationLevel = true,
                     UsePageLocksOnDequeue = true,
-                    DisableGlobalLocks = true
+                    DisableGlobalLocks = true,
                 }));
-
-            services.AddHangfireServer();
 
             services.AddControllers();
             services.AddScoped<ProcessDocument, ProcessDocument>();

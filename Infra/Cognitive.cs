@@ -17,56 +17,47 @@ namespace Extractt.Infra
 
         private async Task<string> MakeOCRRequest(string imagePath)
         {
-            try
+            Console.WriteLine("Initing Microsoft Cognitive");
+            HttpClient client = new HttpClient();
+            client.DefaultRequestHeaders.Add("Ocp-Apim-Subscription-Key", Environment.GetEnvironmentVariable("COGNITIVE_KEY"));
+            var uriBase = Environment.GetEnvironmentVariable("COGNITIVE_API") + "vision/v2.1/ocr";
+            const string requestParameters = "language=pt";
+            var uri = uriBase + "?" + requestParameters;
+
+            HttpResponseMessage response;
+
+            byte[] byteData = GetImageAsByteArray(imagePath);
+
+            // Add the byte array as an octet stream to the request body.
+            using (ByteArrayContent content = new ByteArrayContent(byteData))
             {
-                Console.WriteLine("Iniciando OCR Microsoft");
-                HttpClient client = new HttpClient();
-                client.DefaultRequestHeaders.Add("Ocp-Apim-Subscription-Key", Environment.GetEnvironmentVariable("COGNITIVE_KEY"));
-                var uriBase = Environment.GetEnvironmentVariable("COGNITIVE_API") + "vision/v2.1/ocr";
-                const string requestParameters = "language=pt";
-                var uri = uriBase + "?" + requestParameters;
+                content.Headers.ContentType =
+                    new MediaTypeHeaderValue("application/octet-stream");
 
-                HttpResponseMessage response;
+                response = await client.PostAsync(uri, content).ConfigureAwait(false);
+            }
 
-                byte[] byteData = GetImageAsByteArray(imagePath);
-                Console.WriteLine("Carregado imagem para enviar para Microsoft");
+            string contentString = await response
+                .Content
+                .ReadAsStringAsync()
+                .ConfigureAwait(false);
+            var resposta = JsonConvert.DeserializeObject<Response>(contentString);
 
-                // Add the byte array as an octet stream to the request body.
-                using (ByteArrayContent content = new ByteArrayContent(byteData))
+            if(resposta == null || resposta.Regions == null)
+                return string.Empty;
+
+            StringBuilder builder = new StringBuilder();
+            foreach (var region in resposta.Regions)
+            {
+                foreach (var line in region.Lines)
                 {
-                    content.Headers.ContentType =
-                        new MediaTypeHeaderValue("application/octet-stream");
-
-                    response = await client.PostAsync(uri, content).ConfigureAwait(false);
-                }
-
-                string contentString = await response
-                    .Content
-                    .ReadAsStringAsync()
-                    .ConfigureAwait(false);
-                var resposta = JsonConvert.DeserializeObject<Response>(contentString);
-
-                if(resposta == null || resposta.Regions == null)
-                    return string.Empty;
-
-                StringBuilder builder = new StringBuilder();
-                foreach (var region in resposta.Regions)
-                {
-                    foreach (var line in region.Lines)
+                    foreach (var word in line.Words)
                     {
-                        foreach (var word in line.Words)
-                        {
-                            builder.Append(word.Text).Append(" ");
-                        }
+                        builder.Append(word.Text).Append(" ");
                     }
                 }
-                return builder.ToString();
             }
-            catch (Exception e)
-            {
-                Console.WriteLine("Erro no OCR Microsoft" + e.Message);
-                return null;
-            }
+            return builder.ToString();
         }
 
         private byte[] GetImageAsByteArray(string imagePath)

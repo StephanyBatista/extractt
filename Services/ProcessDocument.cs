@@ -1,4 +1,4 @@
-using System.Collections.Generic;
+using System;
 using System.Threading.Tasks;
 using Extractt.Infra;
 using Extractt.Models;
@@ -20,28 +20,37 @@ namespace Extractt.Services
             _callback = callback;
         }
 
-        public async Task Process(NewItemDto dto)
+        public async Task Process(NewItemRequest newItem)
         {
-            var result = new List<ResultPdfDto>();
-            var filePath = _fileManager.Download(dto.DocumentUrl);
-            var numberOfPages = _fileManager.GetNumberOfPages(filePath);
-
-            for(var page = 1; page <= numberOfPages; page++)
+            try
             {
-                var pagePath = _fileManager.GeneratePage(filePath, page);
-                var text = _pdfToText.Get(pagePath);
-                if(string.IsNullOrEmpty(text) || text.Length < 256)
-                {
-                    var imagePath = _fileManager.GeneratePageInImage(filePath, page);
-                    text = await _cognitive.Get(imagePath).ConfigureAwait(false);
-                    _fileManager.Delete(imagePath);
-                }
-                result.Add(new ResultPdfDto{ Text = text, Page = page});
-                _fileManager.Delete(pagePath);
-            }
+                var documentResult = new DocumentResultResponse();
+                var filePath = _fileManager.Download(newItem.DocumentUrl);
+                var numberOfPages = _fileManager.GetNumberOfPages(filePath);
 
-            _fileManager.Delete(filePath);
-            await _callback.Send(result, dto).ConfigureAwait(false);
+                for(var page = 1; page <= numberOfPages; page++)
+                {
+                    var pagePath = _fileManager.GeneratePage(filePath, page);
+                    var text = _pdfToText.Get(pagePath);
+                    if(string.IsNullOrEmpty(text) || text.Length < 256)
+                    {
+                        var imagePath = _fileManager.GeneratePageInImage(filePath, page);
+                        text = await _cognitive.Get(imagePath).ConfigureAwait(false);
+                        _fileManager.Delete(imagePath);
+                    }
+                    documentResult.AddProcessedPage(text, page);
+                    _fileManager.Delete(pagePath);
+                }
+
+                _fileManager.Delete(filePath);
+                documentResult.Sucess = true;
+                await _callback.Send(documentResult, newItem).ConfigureAwait(false);
+            }
+            catch(Exception ex)
+            {
+                var documentResult = new DocumentResultResponse { Sucess = false, ErrorMessage = ex.Message };
+                await _callback.Send(documentResult, newItem).ConfigureAwait(false);
+            }
         }
     }
 }
