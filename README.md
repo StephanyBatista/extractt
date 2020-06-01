@@ -71,11 +71,57 @@ O primeiro job é responsável por baixar e processar todos as páginas do docum
 
 O segundo job é responsável por obter o resultado do primeiro job é enviar este para o sistema cliente. A mesma coisa em relação ao primeiro job acontece nesse item em caso de falha.
 
+Abaixo um exemplo de 10 tentativas feitas pelo Hangfire
+
+```
+warn: Hangfire.AutomaticRetryAttribute[0]
+      Failed to process the job '72': an exception occurred. Retry attempt 1 of 10 will be performed in 00:00:44.
+System.Exception: Error to callback
+  
+warn: Hangfire.AutomaticRetryAttribute[0]
+      Failed to process the job '72': an exception occurred. Retry attempt 2 of 10 will be performed in 00:00:18.
+System.Exception: Error to callback
+   
+warn: Hangfire.AutomaticRetryAttribute[0]
+      Failed to process the job '72': an exception occurred. Retry attempt 3 of 10 will be performed in 00:01:07.
+System.Exception: Error to callback
+   
+warn: Hangfire.AutomaticRetryAttribute[0]
+      Failed to process the job '72': an exception occurred. Retry attempt 4 of 10 will be performed in 00:01:36.
+System.Exception: Error to callback
+   
+warn: Hangfire.AutomaticRetryAttribute[0]
+      Failed to process the job '72': an exception occurred. Retry attempt 5 of 10 will be performed in 00:06:46.
+System.Exception: Error to callback
+   
+warn: Hangfire.AutomaticRetryAttribute[0]
+      Failed to process the job '72': an exception occurred. Retry attempt 6 of 10 will be performed in 00:12:58.
+System.Exception: Error to callback
+
+warn: Hangfire.AutomaticRetryAttribute[0]
+      Failed to process the job '72': an exception occurred. Retry attempt 7 of 10 will be performed in 00:22:47.
+System.Exception: Error to callback
+   
+warn: Hangfire.AutomaticRetryAttribute[0]
+      Failed to process the job '72': an exception occurred. Retry attempt 8 of 10 will be performed in 00:42:24.
+System.Exception: Error to callback
+  
+warn: Hangfire.AutomaticRetryAttribute[0]
+      Failed to process the job '72': an exception occurred. Retry attempt 9 of 10 will be performed in 01:11:13.
+System.Exception: Error to callback
+   
+warn: Hangfire.AutomaticRetryAttribute[0]
+      Failed to process the job '72': an exception occurred. Retry attempt 10 of 10 will be performed in 01:49:46.
+System.Exception: Error to callback
+   
+```
+
+
 ## Inicialização
 ##### Banco de dados
-Para que o Extractt possa ser escalável e seguro a ponto de não perder nenhum job criado em caso de pane, um banco de dados SQL Server deverá ser utilizado para armazenamento dos jobs. 
+Para que o Extractt possa ser escalável e seguro a ponto de não perder nenhum job criado em caso de pane, um banco de dados SQL Server deverá ser utilizado para armazenamento dos eventos. 
 
-O startup do projeto já cria os objetos necessários no banco de dados. Para isso é necessário que se crie a variável de ambiente do banco de dados e que este já esteja criado na instancia do SQL Server
+O startup do projeto já cria os objetos necessários no banco de dados. Para isso é necessário que o banco de dados já esteja criado e crie a variável de ambiente do banco de dados contendo a string de conexão.
 ```
 export HANGFIRE_CONNECTION="Server=localhost;Database=Extractt;User Id=sa;Password=p4ssw0rd*;MultipleActiveResultSets=true;Encrypt=YES;TrustServerCertificate=YES"
 ```
