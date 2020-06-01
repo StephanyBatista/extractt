@@ -7,10 +7,10 @@ Extractt é um serviço destinado a extração de textos de documentos. Seu func
 ## Quais ferramentas utiliza
 Extracct utiliza duas ferramentas para a extração de textos. 
 
-### PdfToText
+##### PdfToText
 PdfToText é uma ferramenta para extração de textos do PDF que nasceram de forma digital. Essa ferramenta deve ser instalada no SO de onde será executado o Extractt.
 
-### Cognitive Services
+##### Cognitive Services
 Cognitive Services é uma ferramenta do Azure que tem a função de extrair textos do PDF onde estes foram scaneados e não foi possível ser extraido através da ferramenta PdfToText.
 
 
@@ -58,4 +58,21 @@ Todo o processo de jobs no Extractt é gerenciado pelo Hangire.
 O primeiro job é responsável por baixar e processar todos as páginas do documento. Em caso de falha em qualquer parte o Hangifire re-agenda para fazer mais 10 tentativas, com tempos crescentes após cada tentativa.
 
 O segundo job é responsável por obter o resultado do primeiro job é enviar este para o sistema cliente. A mesma coisa em relação ao primeiro job acontece nesse item em caso de falha.
+
+## Inicialização
+##### Banco de dados
+Para que o Extractt possa ser escalável e seguro a ponto de não perder nenhum job criado em caso de pane, um banco de dados SQL Server deverá ser utilizado para armazenamento dos jobs. 
+
+O startup do projeto já cria os objetos necessários no banco de dados. Para isso é necessário que se crie a variável de ambiente do banco de dados e que este já esteja criado na instancia do SQL Server
+
+export HANGFIRE_CONNECTION="Server=localhost;Database=Extractt;User Id=sa;Password=p4ssw0rd*;MultipleActiveResultSets=true;Encrypt=YES;TrustServerCertificate=YES"
+
+##### Cognitive services
+Para que o Extractt possa utilizar o Cognitive Services é necessário que a variável de ambiente seja criada conforme abaixo
+export COGNITIVE_API={URL_COGNITIVE}
+export COGNITIVE_KEY={KEY_COGNITIVE}
+
+As duas variáveis são necessárias para a utilização do Cognitive Services.
+
+
 
