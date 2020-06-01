@@ -4,6 +4,8 @@
 Extractt é um serviço destinado a extração de textos de documentos. Seu funcionando é de forma assíncrona e seu cliente não precisa aguardar o processamento para ter o resultado, o resultado é enviado assim que o processamento termina atavés de uma url de callback.
 
 
+
+
 ## Quais ferramentas utiliza
 Extracct utiliza duas ferramentas para a extração de textos. 
 
