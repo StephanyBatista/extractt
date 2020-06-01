@@ -3,8 +3,12 @@
 ## Descrição
 Extractt é um serviço destinado a extração de textos de documentos. Seu funcionando é de forma assíncrona e seu cliente não precisa aguardar o processamento para ter o resultado, o resultado é enviado assim que o processamento termina atavés de uma url de callback.
 
+![alt text](https://github.com/StephanyBatista/extractt/blob/master/Imgs/extractt_flow.png?raw=true)
 
+## Por que Extractt?
+Com o Extractt evitamos fazer loppings infinitos para descobrir se no sistema cliente existe um novo arquivo e a partir disso iniciar a extração do texto de tal documento. Com a abordagem de loop, sobrecarregamos ou o sistema cliente ou seu banco de dados, sem contar que muitas vezes podemos utilizar a rede e os recursos de forma desnecessária quando não um novo documento a ser processado.
 
+Outro motivo que faz o uso do Extractt é a fault-tolerant, já que em caso de falha do sistema cliente em disponbilizar o documento ou no processamento do Extractt, jobs são executados novamente.
 
 ## Quais ferramentas utiliza
 Extracct utiliza duas ferramentas para a extração de textos. 
