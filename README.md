@@ -7,11 +7,17 @@ Extractt é um serviço destinado a extração de textos de documentos. Seu func
 ## Quais ferramentas utiliza
 Extracct utiliza duas ferramentas para a extração de textos. 
 
-##### PdfToText
+#### PdfToText
 PdfToText é uma ferramenta para extração de textos do PDF que nasceram de forma digital. Essa ferramenta deve ser instalada no SO de onde será executado o Extractt.
 
-##### Cognitive Services
+#### Cognitive Services
 Cognitive Services é uma ferramenta do Azure que tem a função de extrair textos do PDF onde estes foram scaneados e não foi possível ser extraido através da ferramenta PdfToText.
+
+#### Hangfire
+Hangfire é uma biblioteca C# para gerenciamento de jobs na aplicação, com ela podemos agendar jobs sem nos preocupar com sua segurança, já que ela faz o uso do armazenamento dos status dos jobos no SQL Server para em caso de falha da aplicação.
+
+#### SQL Server
+Banco de dados utilizado para armazenar os jobs criados pelo Hangfire.
 
 
 ## Como funciona?
