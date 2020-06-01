@@ -1,5 +1,4 @@
-﻿using System;
-using Extractt.Models;
+﻿using Extractt.Models;
 using Extractt.Services;
 using Hangfire;
 using Microsoft.AspNetCore.Mvc;

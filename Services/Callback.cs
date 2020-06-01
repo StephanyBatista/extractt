@@ -12,12 +12,6 @@ namespace Extractt.Services
 {
     public class Callback
     {
-        private readonly IBackgroundJobClient _backgroundJobs;
-
-        public Callback(IBackgroundJobClient backgroundJobs)
-        {
-            _backgroundJobs = backgroundJobs;
-        }
         public async Task Send(DocumentResultResponse documentResult, NewItemRequest newItem)
         {
             using var client = new HttpClient();
@@ -26,9 +20,7 @@ namespace Extractt.Services
             contentString.Headers.ContentType = new MediaTypeHeaderValue("application/json");
             var response = await client.PutAsync(newItem.CallbackUrl, contentString).ConfigureAwait(false);
             if(response.StatusCode != HttpStatusCode.OK)
-            {
-                _backgroundJobs.Enqueue(() => Send(documentResult, newItem));
-            }
+                throw new Exception("Error to callback");
         }
     }
 }

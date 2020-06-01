@@ -2,6 +2,7 @@ using System;
 using System.Threading.Tasks;
 using Extractt.Infra;
 using Extractt.Models;
+using Hangfire;
 
 namespace Extractt.Services
 {
@@ -11,13 +12,20 @@ namespace Extractt.Services
         private readonly PdfToText _pdfToText;
         private readonly Cognitive _cognitive;
         private readonly Callback _callback;
+        private readonly IBackgroundJobClient _backgroundJobs;
 
-        public ProcessDocument(FileManager fileManager, PdfToText pdfToText, Cognitive cognitive, Callback callback)
+        public ProcessDocument(
+            FileManager fileManager,
+            PdfToText pdfToText,
+            Cognitive cognitive,
+            Callback callback,
+            IBackgroundJobClient backgroundJobs)
         {
             _fileManager = fileManager;
             _pdfToText = pdfToText;
             _cognitive = cognitive;
             _callback = callback;
+            _backgroundJobs = backgroundJobs;
         }
 
         public async Task Process(NewItemRequest newItem)

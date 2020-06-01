@@ -37,6 +37,8 @@ namespace Extractt
                     DisableGlobalLocks = true,
                 }));
 
+            services.AddHangfireServer();
+
             services.AddControllers();
             services.AddScoped<ProcessDocument, ProcessDocument>();
             services.AddScoped<PdfToText, PdfToText>();
