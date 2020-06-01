@@ -64,13 +64,16 @@ O segundo job é responsável por obter o resultado do primeiro job é enviar es
 Para que o Extractt possa ser escalável e seguro a ponto de não perder nenhum job criado em caso de pane, um banco de dados SQL Server deverá ser utilizado para armazenamento dos jobs. 
 
 O startup do projeto já cria os objetos necessários no banco de dados. Para isso é necessário que se crie a variável de ambiente do banco de dados e que este já esteja criado na instancia do SQL Server
-
+```
 export HANGFIRE_CONNECTION="Server=localhost;Database=Extractt;User Id=sa;Password=p4ssw0rd*;MultipleActiveResultSets=true;Encrypt=YES;TrustServerCertificate=YES"
+```
 
 ##### Cognitive services
 Para que o Extractt possa utilizar o Cognitive Services é necessário que a variável de ambiente seja criada conforme abaixo
+```
 export COGNITIVE_API={URL_COGNITIVE}
 export COGNITIVE_KEY={KEY_COGNITIVE}
+```
 
 As duas variáveis são necessárias para a utilização do Cognitive Services.
 
