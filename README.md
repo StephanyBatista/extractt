@@ -14,7 +14,7 @@ Fault-tolerant é outro motivo importante para um processo como esse, já que em
 Extracct utiliza duas ferramentas para a extração de textos. 
 
 #### PdfToText
-PdfToText é uma ferramenta para extração de textos do PDF que nasceram de forma digital. Essa ferramenta deve ser instalada no SO de onde será executado o Extractt.
+PdfToText é uma ferramenta para extração de textos de arquivos PDF digitais. Essa ferramenta deve ser instalada no SO de onde será executado o Extractt.
 
 #### Cognitive Services
 Cognitive Services é uma ferramenta do Azure que tem a função de extrair textos de imagens. Para que isso aconteça, o Extractt transforma todas as páginas para jpg e envia separadamente para o Cognitive processar.
