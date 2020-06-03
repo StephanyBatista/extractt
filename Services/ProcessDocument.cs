@@ -40,7 +40,7 @@ namespace Extractt.Services
                 {
                     var pagePath = _fileManager.GeneratePage(filePath, page);
                     var text = _pdfToText.Get(pagePath);
-                    if(string.IsNullOrEmpty(text) || text.Length < 256)
+                    if(text == null)
                     {
                         var imagePath = _fileManager.GeneratePageInImage(filePath, page);
                         text = await _cognitive.Get(imagePath).ConfigureAwait(false);
@@ -51,13 +51,13 @@ namespace Extractt.Services
                 }
 
                 _fileManager.Delete(filePath);
-                documentResult.Sucess = true;
-                await _callback.Send(documentResult, newItem).ConfigureAwait(false);
+                documentResult.Success = true;
+                _backgroundJobs.Enqueue(() => _callback.Send(documentResult, newItem));
             }
             catch(Exception ex)
             {
-                var documentResult = new DocumentResultResponse { Sucess = false, ErrorMessage = ex.Message };
-                await _callback.Send(documentResult, newItem).ConfigureAwait(false);
+                var documentResult = new DocumentResultResponse { Success = false, ErrorMessage = ex.Message };
+                _backgroundJobs.Enqueue(() => _callback.Send(documentResult, newItem));
             }
         }
     }
