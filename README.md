@@ -1,14 +1,14 @@
 # Extractt
 
 ## Descrição
-Extractt é um serviço destinado a extração de textos de documentos. Seu funcionando é de forma assíncrona e seu cliente não precisa aguardar o processamento para ter o resultado, o resultado é enviado assim que o processamento termina atavés de uma url de callback.
+Extractt é um serviço destinado a extração de textos de documentos. Seu funcionando é de forma assíncrona e seu cliente não precisa aguardar o processamento para ter o resultado que é enviado assim que o processamento termina atavés de uma url de callback.
 
 ![alt text](https://github.com/StephanyBatista/extractt/blob/master/Assets/extractt_flow.png?raw=true)
 
 ## Por que Extractt?
-A extração de textos de documentos geralmente é demorada, em média 30s. Evitar que o usuário final seja penalisado com essa demora e remover processos pesados do sistema cliente são os objetivos para se criar o Extractt.
+A extração de textos de documentos geralmente é demorada, em média 30s. Evitar que o usuário final seja penalisado com essa demora e remover processos pesados do sistema cliente são os objetivos para a criação do Extractt.
 
-Fault-tolerant é outro motivo que se faz para se criar o Extractt, já que em caso de falha do sistema cliente em disponbilizar o documento ou no processamento da extração do texto, o sistema Extractt irá saber re-começar de onde parou.
+Fault-tolerant é outro motivo importante para um processo como esse, já que em caso de falha do sistema cliente em disponbilizar o documento ou no processamento da extração do texto, o Extractt irá saber re-começar de onde parou.
 
 ## Quais ferramentas utiliza para extração de texto?
 Extracct utiliza duas ferramentas para a extração de textos. 
@@ -31,6 +31,31 @@ Hangfire é uma biblioteca C# para gerenciamento de jobs na aplicação, com ela
 #### SQL Server
 Banco de dados utilizado para armazenar os jobs criados pelo Hangfire.
 
+## Inicialização
+##### Banco de dados
+Para que o Extractt possa ser escalável e seguro a ponto de não perder nenhum job agendado em caso de pane, um banco de dados SQL Server deverá ser utilizado para armazenamento dos eventos. 
+
+O startup do projeto já cria os objetos necessários no banco de dados. Para isso é necessário que o banco de dados já esteja criado. 
+
+Através da variável de ambiente abaixo o Extractt irá saber a qual banco de dados se conectar.
+```
+export HANGFIRE_CONNECTION="Server=localhost;Database=Extractt;User Id=sa;Password=p4ssw0rd*;MultipleActiveResultSets=true;Encrypt=YES;TrustServerCertificate=YES"
+```
+
+##### Cognitive services
+Para que o Extractt possa utilizar o Cognitive Services é necessário que a variáveis de ambiente estejam criadas conforme abaixo.
+```
+export COGNITIVE_API={URL_COGNITIVE}
+export COGNITIVE_KEY={KEY_COGNITIVE}
+```
+
+As duas variáveis são necessárias para a utilização do Cognitive Services.
+
+##### Segurança
+Uma chave de acesso deve ser informada ao Extractt e este utilizada por sistemas clientes para que essa chamada seja feita de forma segura. Caso o sistema cliente passe uma chave de acesso incorreta, o Extractt irá recusar o processamento do documento informando um status de Bad Request.
+```
+export ACCESS_KEY=aaÇÇ34567
+```
 
 ## Como funciona?
 O cliente do serviço extractt acessa a api POST api/queue com o seguinte payload
@@ -38,14 +63,16 @@ O cliente do serviço extractt acessa a api POST api/queue com o seguinte payloa
 {
 	"DocumentUrl": "https://gahp.net/wp-content/uploads/2017/09/sample.pdf",
 	"CallbackUrl": "https://webhook.site/8678864d-5ac9-43ed-a462-c744e5890043aaabbb",
-	"Identifier": "XPTO"
+	"Identifier": "XPTO",
+	"AccessKey": "aaÇÇ34567"
 }	
 ```
 - DocumentUrl é o link do documento a ser baixado e processado pelo Extractt.
 - CallbackUrl é o link do sistema cliente que o Extractt irá acessar após processamento do documento.
-- Identifier é o parâmetro que o extractt irá enviar para o sistema cliente como forma de segurança.
+- Identifier é o parâmetro que o extractt irá enviar para o sistema cliente para que esse identifique o documento informado.
+- AccessKey é a chave de acesso que o Extractt necessita na inicitalização do sitema. Essa chave deverá ser mantida em segredo pelo sistema cliente.
 
-Extracct ao receber o payload, agenda um job para processar o documento e retorna ao cliente o status 200. 
+Extracct ao receber o payload, agenda um job para processar o documento e retorna ao cliente o status 200 caso todos os parâmetros estejam corretos. 
 
 Quando o job se iniciar, o texto é extraído por página do documento. Primeira tenta utilizar a ferramenta PdfToText e em caso de falha se inicia o Cognitive Services.
 
@@ -73,9 +100,9 @@ O sistema cliente irá receber o json acima.
 ## Falhas
 Todo o processo de jobs no Extractt é gerenciado pelo Hangire.
 
-O primeiro job é responsável por baixar e processar todos as páginas do documento. Em caso de falha em qualquer parte o Hangifire re-agenda para fazer mais 10 tentativas, com tempos crescentes após cada tentativa.
+O primeiro job é responsável por baixar e processar todos as páginas do documento. Em caso de falha, Hangifire re-agenda para fazer mais 10 tentativas, com tempos crescentes após cada tentativa.
 
-O segundo job é responsável por obter o resultado do primeiro job é enviar este para o sistema cliente. A mesma coisa em relação ao primeiro job acontece nesse item em caso de falha.
+O segundo job é responsável por obter o resultado do primeiro job é enviar para o sistema cliente. A mesma coisa em relação ao primeiro job acontece nesse item em caso de falha.
 
 Abaixo um exemplo de 10 tentativas feitas pelo Hangfire
 
@@ -123,23 +150,6 @@ System.Exception: Error to callback
 ```
 
 
-## Inicialização
-##### Banco de dados
-Para que o Extractt possa ser escalável e seguro a ponto de não perder nenhum job criado em caso de pane, um banco de dados SQL Server deverá ser utilizado para armazenamento dos eventos. 
-
-O startup do projeto já cria os objetos necessários no banco de dados. Para isso é necessário que o banco de dados já esteja criado e crie a variável de ambiente do banco de dados contendo a string de conexão.
-```
-export HANGFIRE_CONNECTION="Server=localhost;Database=Extractt;User Id=sa;Password=p4ssw0rd*;MultipleActiveResultSets=true;Encrypt=YES;TrustServerCertificate=YES"
-```
-
-##### Cognitive services
-Para que o Extractt possa utilizar o Cognitive Services é necessário que a variável de ambiente seja criada conforme abaixo
-```
-export COGNITIVE_API={URL_COGNITIVE}
-export COGNITIVE_KEY={KEY_COGNITIVE}
-```
-
-As duas variáveis são necessárias para a utilização do Cognitive Services.
 
 
 
