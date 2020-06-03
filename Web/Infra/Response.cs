@@ -1,6 +1,6 @@
 using System.Collections.Generic;
 
-namespace Extractt.Infra
+namespace Extractt.Web.Infra
 {
     public class Response
     {

@@ -1,6 +1,6 @@
 ﻿using System;
-using Extractt.Infra;
-using Extractt.Services;
+using Extractt.Web.Infra;
+using Extractt.Web.Services;
 using Hangfire;
 using Hangfire.SqlServer;
 using Microsoft.AspNetCore.Builder;
@@ -27,7 +27,7 @@ namespace Extractt
                 .SetDataCompatibilityLevel(CompatibilityLevel.Version_170)
                 .UseSimpleAssemblyNameTypeSerializer()
                 .UseRecommendedSerializerSettings()
-                .UseSqlServerStorage(Environment.GetEnvironmentVariable("HANGFIRE_CONNECTION"), new SqlServerStorageOptions
+                .UseSqlServerStorage(EnvironmentVariables.HangfireConnection, new SqlServerStorageOptions
                 {
                     CommandBatchMaxTimeout = TimeSpan.FromMinutes(5),
                     SlidingInvisibilityTimeout = TimeSpan.FromMinutes(5),
@@ -42,6 +42,7 @@ namespace Extractt
             services.AddControllers();
             services.AddScoped<ProcessDocument, ProcessDocument>();
             services.AddScoped<PdfToText, PdfToText>();
+            services.AddScoped<ExtractionManager, ExtractionManager>();
             services.AddScoped<FileManager, FileManager>();
             services.AddScoped<Cognitive, Cognitive>();
             services.AddScoped<Callback, Callback>();

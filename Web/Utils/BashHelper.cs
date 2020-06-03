@@ -1,7 +1,7 @@
 using System.Diagnostics;
 using System.Threading.Tasks;
 
-namespace Extractt.Utils
+namespace Extractt.Web.Utils
 {
     public static class BashHelper
     {

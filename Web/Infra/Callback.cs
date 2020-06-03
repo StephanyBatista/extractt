@@ -4,16 +4,18 @@ using System.Net.Http;
 using System.Net.Http.Headers;
 using System.Text;
 using System.Threading.Tasks;
-using Extractt.Models;
-using Hangfire;
+using Extractt.Web.Models;
 using Newtonsoft.Json;
 
-namespace Extractt.Services
+namespace Extractt.Web.Infra
 {
     public class Callback
     {
         public async Task Send(DocumentResultResponse documentResult, NewItemRequest newItem)
         {
+            documentResult.Identifier = newItem.Identifier;
+            documentResult.AccessKey = newItem.AccessKey;
+
             using var client = new HttpClient();
             var jsonContent = JsonConvert.SerializeObject(documentResult);
             var contentString = new StringContent(jsonContent, Encoding.UTF8, "application/json");

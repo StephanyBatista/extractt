@@ -1,10 +1,12 @@
 using System.Collections.Generic;
 
-namespace Extractt.Models
+namespace Extractt.Web.Models
 {
     public class DocumentResultResponse
     {
         public bool Success { get; set; }
+        public string Identifier { get; set; }
+        public string AccessKey { get; set; }
         public string ErrorMessage { get; set; }
         public List<PageResultResponse> Pages { get; set; }
 

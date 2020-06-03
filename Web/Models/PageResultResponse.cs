@@ -1,4 +1,4 @@
-namespace Extractt.Models
+namespace Extractt.Web.Models
 {
     public class PageResultResponse
     {

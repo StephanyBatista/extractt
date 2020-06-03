@@ -1,14 +1,14 @@
 using System;
 using System.IO;
 using System.Net;
-using Extractt.Utils;
+using Extractt.Web.Utils;
 using iText.Kernel.Pdf;
 
-namespace Extractt.Infra
+namespace Extractt.Web.Infra
 {
     public class FileManager
     {
-        public string Download(string url)
+        public virtual string Download(string url)
         {
             var localPath = $"{Directory.GetCurrentDirectory()}/{Guid.NewGuid().ToString().Substring(0,6)}.pdf";
             using var webClient = new WebClient();
@@ -16,7 +16,7 @@ namespace Extractt.Infra
             return localPath;
         }
 
-        public int GetNumberOfPages(string pdfPath)
+        public virtual int GetNumberOfPages(string pdfPath)
         {
             var pdfReader = new PdfReader(pdfPath);
             var document = new PdfDocument(pdfReader);

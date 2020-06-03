@@ -1,29 +1,26 @@
 using System;
 using System.Threading.Tasks;
-using Extractt.Infra;
-using Extractt.Models;
+using Extractt.Web.Infra;
+using Extractt.Web.Models;
 using Hangfire;
 
-namespace Extractt.Services
+namespace Extractt.Web.Services
 {
     public class ProcessDocument
     {
         private readonly FileManager _fileManager;
-        private readonly PdfToText _pdfToText;
-        private readonly Cognitive _cognitive;
+        private readonly ExtractionManager _extractionManager;
         private readonly Callback _callback;
         private readonly IBackgroundJobClient _backgroundJobs;
 
         public ProcessDocument(
             FileManager fileManager,
-            PdfToText pdfToText,
-            Cognitive cognitive,
+            ExtractionManager extractionManager,
             Callback callback,
             IBackgroundJobClient backgroundJobs)
         {
             _fileManager = fileManager;
-            _pdfToText = pdfToText;
-            _cognitive = cognitive;
+            _extractionManager = extractionManager;
             _callback = callback;
             _backgroundJobs = backgroundJobs;
         }
@@ -38,16 +35,8 @@ namespace Extractt.Services
 
                 for(var page = 1; page <= numberOfPages; page++)
                 {
-                    var pagePath = _fileManager.GeneratePage(filePath, page);
-                    var text = _pdfToText.Get(pagePath);
-                    if(text == null)
-                    {
-                        var imagePath = _fileManager.GeneratePageInImage(filePath, page);
-                        text = await _cognitive.Get(imagePath).ConfigureAwait(false);
-                        _fileManager.Delete(imagePath);
-                    }
+                    var text = await _extractionManager.Extract(filePath, page);
                     documentResult.AddProcessedPage(text, page);
-                    _fileManager.Delete(pagePath);
                 }
 
                 _fileManager.Delete(filePath);
