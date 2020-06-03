@@ -6,18 +6,24 @@ Extractt é um serviço destinado a extração de textos de documentos. Seu func
 ![alt text](https://github.com/StephanyBatista/extractt/blob/master/Assets/extractt_flow.png?raw=true)
 
 ## Por que Extractt?
-Com o Extractt evitamos fazer loppings infinitos para descobrir se no sistema cliente existe um novo arquivo e a partir disso iniciar a extração do texto de tal documento. Com a abordagem de loop, sobrecarregamos ou o sistema cliente ou seu banco de dados, sem contar que muitas vezes podemos utilizar a rede e os recursos de forma desnecessária quando não um novo documento a ser processado.
+A extração de textos de documentos geralmente é demorada, em média 30s. Evitar que o usuário final seja penalisado com essa demora e remover processos pesados do sistema cliente são os objetivos para se criar o Extractt.
 
-Outro motivo que faz o uso do Extractt é a fault-tolerant, já que em caso de falha do sistema cliente em disponbilizar o documento ou no processamento do Extractt, jobs são executados novamente.
+Fault-tolerant é outro motivo que se faz para se criar o Extractt, já que em caso de falha do sistema cliente em disponbilizar o documento ou no processamento da extração do texto, o sistema Extractt irá saber re-começar de onde parou.
 
-## Quais ferramentas utiliza
+## Quais ferramentas utiliza para extração de texto?
 Extracct utiliza duas ferramentas para a extração de textos. 
 
 #### PdfToText
 PdfToText é uma ferramenta para extração de textos do PDF que nasceram de forma digital. Essa ferramenta deve ser instalada no SO de onde será executado o Extractt.
 
 #### Cognitive Services
-Cognitive Services é uma ferramenta do Azure que tem a função de extrair textos do PDF onde estes foram scaneados e não foi possível ser extraido através da ferramenta PdfToText.
+Cognitive Services é uma ferramenta do Azure que tem a função de extrair textos de imagens. Para que isso aconteça, o Extractt transforma todas as páginas para jpg e envia separadamente para o Cognitive processar.
+
+Essa ferramenta é paga são necessários passar os parâmetro de API e Key para o Extractt utilizar corretamente.
+
+## Como o Extractt foi desenvolvido?
+
+Abaixo são mostrados todas ferramentas para a construção do Extractt
 
 #### Hangfire
 Hangfire é uma biblioteca C# para gerenciamento de jobs na aplicação, com ela podemos agendar jobs sem nos preocupar com sua segurança, já que ela faz o uso do armazenamento dos status dos jobos no SQL Server para em caso de falha da aplicação.
