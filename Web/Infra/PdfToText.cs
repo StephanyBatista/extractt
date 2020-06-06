@@ -14,19 +14,19 @@ namespace Extractt.Web.Infra
         {
             _fileManager = fileManager;
         }
-        
-        public string Get(string filePath)
+
+        public async Task<string> Get(string filePath)
         {
-            Console.WriteLine("Initing Pdf to text");
-            return $"pdftotext {filePath} -".Bash().Result;
+            Console.WriteLine("Trying PdfToText");
+            return await $"pdftotext {filePath} -".Bash().ConfigureAwait(false);
         }
 
         public virtual async Task<string> Exctract(string filePath, int page)
         {
-            var pagePath = _fileManager.GeneratePage(filePath, page);
-            var text = Get(pagePath);
-            _fileManager.Delete(pagePath);
-            if(string.IsNullOrEmpty(text) || text.Length < NumberMinOfCharacters) ;
+            var pagePath = await _fileManager.GeneratePage(filePath, page).ConfigureAwait(false);
+            var text = await Get(pagePath).ConfigureAwait(false);
+            await _fileManager.Delete(pagePath).ConfigureAwait(false);
+            if(string.IsNullOrEmpty(text) || text.Length < NumberMinOfCharacters)
                 return null;
             return text;
         }

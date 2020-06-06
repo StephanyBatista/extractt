@@ -11,6 +11,9 @@ namespace Extractt.Web.Infra
 {
     public class Cognitive : IExtractTextStrategy
     {
+        private const string LanguageParameter = "language=pt";
+        private static readonly string UriBase = EnvironmentVariables.CognitiveApi + "vision/v2.1/ocr";
+        private static readonly string Uri = $"{UriBase}?{LanguageParameter}" ;
         private readonly FileManager _fileManager;
 
         public Cognitive(FileManager fileManager)
@@ -25,32 +28,26 @@ namespace Extractt.Web.Infra
 
         public virtual async Task<string> Exctract(string filePath, int page)
         {
-            var imagePath = _fileManager.GeneratePageInImage(filePath, page);
-            var text = await Get(imagePath);
-            _fileManager.Delete(imagePath);
+            var imagePath = await _fileManager.GeneratePageInImage(filePath, page).ConfigureAwait(false);
+            var text = await Get(imagePath).ConfigureAwait(false);
+            await _fileManager.Delete(imagePath).ConfigureAwait(false);
             return text;
+        }
+
+        private async Task<HttpResponseMessage> GetResponse(string imagePath)
+        {
+            using var client = new HttpClient();
+            client.DefaultRequestHeaders.Add("Ocp-Apim-Subscription-Key", EnvironmentVariables.CognitiveKey);
+            var byteData = GetImageAsByteArray(imagePath);
+            using var content = new ByteArrayContent(byteData);
+            content.Headers.ContentType = new MediaTypeHeaderValue("application/octet-stream");
+            return await client.PostAsync(Uri, content).ConfigureAwait(false);
         }
 
         private async Task<string> MakeOCRRequest(string imagePath)
         {
-            Console.WriteLine("Initing Microsoft Cognitive");
-            var client = new HttpClient();
-            client.DefaultRequestHeaders.Add("Ocp-Apim-Subscription-Key", EnvironmentVariables.CognitiveKey);
-            var uriBase = EnvironmentVariables.CognitiveApi + "vision/v2.1/ocr";
-            const string requestParameters = "language=pt";
-            var uri = uriBase + "?" + requestParameters;
-
-            HttpResponseMessage response;
-
-            var byteData = GetImageAsByteArray(imagePath);
-
-            using (ByteArrayContent content = new ByteArrayContent(byteData))
-            {
-                content.Headers.ContentType =
-                    new MediaTypeHeaderValue("application/octet-stream");
-
-                response = await client.PostAsync(uri, content).ConfigureAwait(false);
-            }
+            Console.WriteLine("Trying Cognitive");
+            var response = await GetResponse(imagePath).ConfigureAwait(false);
 
             var contentString = await response
                 .Content
