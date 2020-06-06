@@ -15,8 +15,12 @@ namespace Extractt.Web.Infra
         {
             documentResult.Identifier = newItem.Identifier;
             documentResult.AccessKey = newItem.AccessKey;
-
-            using var client = new HttpClient();
+            var handler = new HttpClientHandler
+            {
+                ClientCertificateOptions = ClientCertificateOption.Manual,
+                ServerCertificateCustomValidationCallback = (httpRequestMessage, cert, cetChain, policyErrors) => true
+            };
+            using var client = new HttpClient(handler);
             var jsonContent = JsonConvert.SerializeObject(documentResult);
             var contentString = new StringContent(jsonContent, Encoding.UTF8, "application/json");
             contentString.Headers.ContentType = new MediaTypeHeaderValue("application/json");
