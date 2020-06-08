@@ -37,9 +37,11 @@ Para que o Extractt possa ser escalável e seguro a ponto de não perder nenhum 
 
 O startup do projeto já cria os objetos necessários no banco de dados. Para isso é necessário que o banco de dados já esteja criado. 
 
-Através da variável de ambiente abaixo o Extractt irá saber a qual banco de dados se conectar.
+Através das variáveis de ambiente abaixo, o Extractt irá saber a qual banco de dados se conectar e qual usuário para acessar o dashboard no endereço /jobs.
 ```
 export HANGFIRE_CONNECTION="Server=localhost;Database=Extractt;User Id=sa;Password=p4ssw0rd*;MultipleActiveResultSets=true;Encrypt=YES;TrustServerCertificate=YES"
+export HANGFIRE_USER=user
+export HANGFIRE_PASSWORD=123456
 ```
 
 ##### Cognitive services

@@ -11,6 +11,7 @@ namespace Extractt.Web.Infra
     {
         public virtual async Task<string> Download(string url)
         {
+            Console.Write($"Downloading file {url}");
             var localPath = $"{Directory.GetCurrentDirectory()}/{Guid.NewGuid().ToString().Substring(0,6)}.pdf";
             using var webClient = new WebClient();
             await Task.Run(() => webClient.DownloadFile(new Uri(url), localPath)).ConfigureAwait(false);
