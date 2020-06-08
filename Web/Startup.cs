@@ -3,6 +3,7 @@ using Extractt.Web.Infra;
 using Extractt.Web.Services;
 using Hangfire;
 using Hangfire.SqlServer;
+using HangfireBasicAuthenticationFilter;
 using Microsoft.AspNetCore.Builder;
 using Microsoft.AspNetCore.Hosting;
 using Microsoft.Extensions.Configuration;
@@ -68,7 +69,12 @@ namespace Extractt
 
             app.UseRouting();
 
-            app.UseHangfireDashboard();
+            var dashboardOption = new DashboardOptions
+            {
+                Authorization = new[] { new HangfireCustomBasicAuthenticationFilter{ User= EnvironmentVariables.HangfireUser, Pass= EnvironmentVariables.HangfirePassword } }
+            };
+
+            app.UseHangfireDashboard("/jobs", dashboardOption);
 
             app.UseAuthorization();
 
