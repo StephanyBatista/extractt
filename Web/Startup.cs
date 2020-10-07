@@ -1,9 +1,5 @@
-﻿using System;
-using Extractt.Web.Infra;
+﻿using Extractt.Web.Infra;
 using Extractt.Web.Services;
-using Hangfire;
-using Hangfire.SqlServer;
-using HangfireBasicAuthenticationFilter;
 using Microsoft.AspNetCore.Builder;
 using Microsoft.AspNetCore.Hosting;
 using Microsoft.Extensions.Configuration;
@@ -30,29 +26,12 @@ namespace Extractt
                     builder => builder.AllowAnyOrigin());
             });
 
-            services.AddHangfire(configuration => configuration
-                .SetDataCompatibilityLevel(CompatibilityLevel.Version_170)
-                .UseSimpleAssemblyNameTypeSerializer()
-                .UseRecommendedSerializerSettings()
-                .UseSqlServerStorage(EnvironmentVariables.HangfireConnection, new SqlServerStorageOptions
-                {
-                    CommandBatchMaxTimeout = TimeSpan.FromMinutes(5),
-                    SlidingInvisibilityTimeout = TimeSpan.FromMinutes(5),
-                    QueuePollInterval = TimeSpan.Zero,
-                    UseRecommendedIsolationLevel = true,
-                    UsePageLocksOnDequeue = true,
-                    DisableGlobalLocks = true,
-                }));
-
-            services.AddHangfireServer();
-
             services.AddControllers();
-            services.AddScoped<ProcessDocument, ProcessDocument>();
-            services.AddScoped<PdfToText, PdfToText>();
-            services.AddScoped<ExtractionManager, ExtractionManager>();
-            services.AddScoped<FileManager, FileManager>();
-            services.AddScoped<Cognitive, Cognitive>();
-            services.AddScoped<Callback, Callback>();
+            services.AddSingleton<ProcessDocument, ProcessDocument>();
+            services.AddSingleton<PdfToText, PdfToText>();
+            services.AddSingleton<ExtractionManager, ExtractionManager>();
+            services.AddSingleton<FileManager, FileManager>();
+            services.AddSingleton<Cognitive, Cognitive>();
         }
 
         // This method gets called by the runtime. Use this method to configure the HTTP request pipeline.
@@ -62,22 +41,14 @@ namespace Extractt
             {
                 app.UseDeveloperExceptionPage();
             }
+            else if(env.IsProduction())
+                app.UseHttpsRedirection();
 
             app.UseCors("Cors");
 
-            app.UseHttpsRedirection();
-
             app.UseRouting();
 
-            var dashboardOption = new DashboardOptions
-            {
-                Authorization = new[] { new HangfireCustomBasicAuthenticationFilter{ User= EnvironmentVariables.HangfireUser, Pass= EnvironmentVariables.HangfirePassword } }
-            };
-
-            app.UseHangfireDashboard("/jobs", dashboardOption);
-
             app.UseAuthorization();
-
             app.UseEndpoints(endpoints => endpoints.MapControllers());
         }
     }

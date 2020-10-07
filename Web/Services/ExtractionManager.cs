@@ -8,7 +8,6 @@ namespace Extractt.Web.Services
     {
         private readonly List<IExtractTextStrategy> _extractionStrategies;
 
-
         public ExtractionManager(PdfToText pdfToText, Cognitive cognitive)
         {
             _extractionStrategies = new List<IExtractTextStrategy> { pdfToText, cognitive };

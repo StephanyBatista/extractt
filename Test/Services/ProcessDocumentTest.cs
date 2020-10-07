@@ -1,12 +1,8 @@
-﻿using System;
-using Extractt.Web.Infra;
+﻿using Extractt.Web.Infra;
 using Extractt.Web.Models;
 using Extractt.Web.Services;
 using FakeItEasy;
-using Hangfire;
-using Hangfire.Common;
-using Hangfire.States;
-using Moq;
+using ExpectedObjects;
 using Xunit;
 
 namespace Extractt.Test.Services
@@ -16,17 +12,14 @@ namespace Extractt.Test.Services
         private readonly ProcessDocument _processDocument;
         private readonly FileManager _fileManager;
         private readonly ExtractionManager _extractionManager;
-        private readonly Mock<IBackgroundJobClient> _backgroundJobClient;
-        private readonly NewItemRequest _newItem;
+        private readonly NewFileToProcess _newFileToProcess;
 
         public ProcessDocumentTest()
         {
             _fileManager = A.Fake<FileManager>();
             _extractionManager = A.Fake<ExtractionManager>();
-            var callback = A.Fake<Callback>();
-            _backgroundJobClient = new Mock<IBackgroundJobClient>();
-            _processDocument = new ProcessDocument(_fileManager, _extractionManager, callback, _backgroundJobClient.Object);
-            _newItem = new NewItemRequest { DocumentUrl = string.Empty, CallbackUrl = string.Empty, Identifier = string.Empty };
+            _processDocument = new ProcessDocument(_fileManager, _extractionManager);
+            _newFileToProcess = new NewFileToProcess { Url = string.Empty };
         }
 
         [Fact]
@@ -34,42 +27,36 @@ namespace Extractt.Test.Services
         {
             const string filePath = "file.pdf";
             const int numberOfPages = 2;
-            A.CallTo(() => _fileManager.Download(_newItem.DocumentUrl)).Returns(filePath);
+            var resultExpected = new {
+                Success = true,
+                Pages = new[] {
+                    new {Page = 1, Text = "Text 1"},
+                    new {Page = 2, Text = "Text 2"}
+                }
+            };
+            A.CallTo(() => _fileManager.Download(_newFileToProcess.Url)).Returns(filePath);
             A.CallTo(() => _fileManager.GetNumberOfPages(filePath)).Returns(numberOfPages);
+            A.CallTo(() => _extractionManager.Extract(filePath, resultExpected.Pages[0].Page))
+                .Returns(resultExpected.Pages[0].Text);
+            A.CallTo(() => _extractionManager.Extract(filePath, resultExpected.Pages[1].Page))
+                .Returns(resultExpected.Pages[1].Text);
 
-            _processDocument.Process(_newItem).Wait();
+            var result = _processDocument.Process(_newFileToProcess).Result;
 
-            A.CallTo(() => _extractionManager.Extract(filePath, 1)).MustHaveHappened()
-                .Then(A.CallTo(() => _extractionManager.Extract(filePath, 2)).MustHaveHappened());
+            resultExpected.ToExpectedObject().ShouldMatch(result);
         }
 
         [Fact]
-        public void Must_enqueue_sucess_callback_after_process_document()
+        public void Must_delete_file_downloaded()
         {
             const string filePath = "file.pdf";
-            const int numberOfPages = 1;
-            const string textExpected = "text";
-            A.CallTo(() => _fileManager.Download(_newItem.DocumentUrl)).Returns(filePath);
+            const int numberOfPages = 2;
+            A.CallTo(() => _fileManager.Download(_newFileToProcess.Url)).Returns(filePath);
             A.CallTo(() => _fileManager.GetNumberOfPages(filePath)).Returns(numberOfPages);
-            A.CallTo(() => _extractionManager.Extract(filePath, 1)).Returns(textExpected);
 
-            _processDocument.Process(_newItem).Wait();
+            _processDocument.Process(_newFileToProcess).Wait();
 
-            _backgroundJobClient.Verify(x => x.Create(
-                It.Is<Job>(job => job.Method.Name == "Send" && (job.Args[0] as DocumentResultResponse).Success),
-                It.IsAny<EnqueuedState>()));
-        }
-
-        [Fact]
-        public void Must_enqueue_fail_callback_when_has_exception()
-        {
-            A.CallTo(() => _fileManager.Download(_newItem.DocumentUrl)).Throws<Exception>();
-
-            _processDocument.Process(_newItem).Wait();
-
-            _backgroundJobClient.Verify(x => x.Create(
-                It.Is<Job>(job => job.Method.Name == "Send" && !(job.Args[0] as DocumentResultResponse).Success),
-                It.IsAny<EnqueuedState>()));
+            A.CallTo(() => _fileManager.Delete(filePath)).MustHaveHappened();
         }
     }
 }
