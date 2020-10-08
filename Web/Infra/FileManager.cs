@@ -1,6 +1,7 @@
 using System;
 using System.IO;
 using System.Net;
+using System.Net.Http;
 using System.Threading.Tasks;
 using Extractt.Web.Utils;
 using iText.Kernel.Pdf;
@@ -9,19 +10,24 @@ namespace Extractt.Web.Infra
 {
     public class FileManager
     {
+        private static HttpClient client = new HttpClient();
+        
         public virtual async Task<string> Download(string url)
         {
             Console.Write($"Downloading file {url}");
             var localPath = $"{Directory.GetCurrentDirectory()}/{Guid.NewGuid().ToString().Substring(0,6)}.pdf";
-            using var webClient = new WebClient();
-            await Task.Run(() => webClient.DownloadFile(new Uri(url), localPath)).ConfigureAwait(false);
+            using var result = await client.GetAsync(url);
+            
+            using var file = System.IO.File.Create(localPath);
+            var contentStream = await result.Content.ReadAsStreamAsync();
+            await contentStream.CopyToAsync(file);
             return localPath;
         }
 
         public virtual int GetNumberOfPages(string pdfPath)
         {
-            var pdfReader = new PdfReader(pdfPath);
-            var document = new PdfDocument(pdfReader);
+            using var pdfReader = new PdfReader(pdfPath);
+            using var document = new PdfDocument(pdfReader);
             return document.GetNumberOfPages();
         }
 
@@ -34,7 +40,7 @@ namespace Extractt.Web.Infra
             return pagePath;
         }
 
-        public async Task Delete(string path)
+        public virtual async Task Delete(string path)
         {
             await Task.Run(() => System.IO.File.Delete(path)).ConfigureAwait(false);
         }

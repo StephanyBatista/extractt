@@ -10,10 +10,12 @@ namespace Extractt.Web.Models
         public string ErrorMessage { get; set; }
         public List<PageResultResponse> Pages { get; set; }
 
-        public void AddProcessedPage(string text, int page)
+        public DocumentResultResponse(int numberOfPages)
         {
-            (Pages ??= new List<PageResultResponse>())
-                .Add(new PageResultResponse{ Text = text, Page = page });
+            Pages = new List<PageResultResponse>();
+            for(var i = 0; i < numberOfPages; i++) {
+                Pages.Add(new PageResultResponse{Page = i+ 1});
+            }
         }
     }
 }
