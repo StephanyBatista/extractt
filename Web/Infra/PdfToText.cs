@@ -26,7 +26,6 @@ namespace Extractt.Web.Infra
             var pagePath = await _fileManager.GeneratePage(filePath, page).ConfigureAwait(false);
             var text = await Get(pagePath).ConfigureAwait(false);
             await _fileManager.Delete(pagePath).ConfigureAwait(false);
-            Console.WriteLine(text);
             if(string.IsNullOrEmpty(text) || text.Length < NumberMinOfCharacters)
                 return null;
             return text;

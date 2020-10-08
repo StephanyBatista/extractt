@@ -24,12 +24,11 @@ namespace Extractt.Web.Services
             var filePath = await _fileManager.Download(newItem.Url).ConfigureAwait(false);
             var numberOfPages = _fileManager.GetNumberOfPages(filePath);
             var documentResult = new DocumentResultResponse(numberOfPages);
-            Console.WriteLine($"Pagina: {numberOfPages}");
             
             var tasks = documentResult.Pages.Select(page => ProcessPage(page, filePath));
             await Task.WhenAll(tasks);
 
-            Console.WriteLine("Finishing documento extraction");
+            Console.WriteLine($"Finishing document with URL {newItem.Url}");
             await _fileManager.Delete(filePath).ConfigureAwait(false);
             documentResult.Success = true;
             return documentResult;
