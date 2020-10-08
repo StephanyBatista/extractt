@@ -3,8 +3,6 @@
 ## Descrição
 Extractt é um serviço destinado a extração de textos de documentos pdf e seu funcionando é de forma síncrona, fazendo com que o cliente da requisição tenha que aguardar seu processamento final para ter o resultado.
 
-![alt text](https://github.com/StephanyBatista/extractt/blob/master/Assets/extractt_flow.png?raw=true)
-
 ## Por que Extractt?
 A extração de textos de documentos geralmente é demorada, em média alguns segundos por página. Evitar que o usuário final seja penalisado com essa demora e remover processos pesados do sistema cliente são os objetivos para a criação do Extractt. Mas como?
 
