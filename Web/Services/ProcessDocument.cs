@@ -21,23 +21,27 @@ namespace Extractt.Web.Services
 
         public async Task<DocumentResultResponse> Process(NewFileToProcess newItem)
         {
-            var filePath = await _fileManager.Download(newItem.Url).ConfigureAwait(false);
-            var numberOfPages = _fileManager.GetNumberOfPages(filePath);
-            var documentResult = new DocumentResultResponse(numberOfPages);
-            
-            var tasks = documentResult.Pages.Select(page => ProcessPage(page, filePath));
-            await Task.WhenAll(tasks);
+            try{
+                var filePath = await _fileManager.Download(newItem.Url).ConfigureAwait(false);
+                var numberOfPages = _fileManager.GetNumberOfPages(filePath);
+                var documentResult = new DocumentResultResponse(numberOfPages);
 
-            Console.WriteLine($"Finishing document with URL {newItem.Url}");
-            await _fileManager.Delete(filePath).ConfigureAwait(false);
-            documentResult.Success = true;
-            return documentResult;
+                var tasks = documentResult.Pages.Select(page => ProcessPage(page, filePath));
+                await Task.WhenAll(tasks).ConfigureAwait(false);
+
+                Console.WriteLine($"Finishing document with URL {newItem.Url}");
+                await _fileManager.Delete(filePath).ConfigureAwait(false);
+                documentResult.Success = true;
+                return documentResult;
+
+            }catch(Exception ex) {
+                return new DocumentResultResponse(ex.Message);
+            }
         }
 
-        public async Task ProcessPage(PageResultResponse page, string filePath) 
+        public async Task ProcessPage(PageResultResponse page, string filePath)
         {
-            var text = await _extractionManager.Extract(filePath, page.Page);
-            page.Text = text;
+            page.Text = await _extractionManager.Extract(filePath, page.Page).ConfigureAwait(false);
         }
     }
 }

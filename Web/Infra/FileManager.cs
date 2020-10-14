@@ -15,11 +15,13 @@ namespace Extractt.Web.Infra
         public virtual async Task<string> Download(string url)
         {
             Console.Write($"Downloading file {url}");
-            var localPath = $"{Directory.GetCurrentDirectory()}/{Guid.NewGuid().ToString().Substring(0,6)}.pdf";
-            using var result = await client.GetAsync(url);
             
-            using var file = System.IO.File.Create(localPath);
+            using var result = await client.GetAsync(url);
+            if(!result.IsSuccessStatusCode)
+                throw new Exception("Error to download file");
             var contentStream = await result.Content.ReadAsStreamAsync();
+            var localPath = $"{Directory.GetCurrentDirectory()}/{Guid.NewGuid().ToString().Substring(0,6)}.pdf";
+            using var file = System.IO.File.Create(localPath);
             await contentStream.CopyToAsync(file);
             return localPath;
         }

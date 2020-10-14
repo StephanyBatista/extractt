@@ -17,5 +17,11 @@ namespace Extractt.Web.Models
                 Pages.Add(new PageResultResponse{Page = i+ 1});
             }
         }
+
+        public DocumentResultResponse(string errorMessage)
+        {
+            Success = false;
+            ErrorMessage = errorMessage;
+        }
     }
 }
