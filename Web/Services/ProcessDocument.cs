@@ -3,6 +3,7 @@ using System.Linq;
 using System.Threading.Tasks;
 using Extractt.Web.Infra;
 using Extractt.Web.Models;
+using Web.Infra;
 
 namespace Extractt.Web.Services
 {
@@ -10,21 +11,30 @@ namespace Extractt.Web.Services
     {
         private readonly FileManager _fileManager;
         private readonly ExtractionManager _extractionManager;
+        private readonly Callback _callback;
 
         public ProcessDocument(
             FileManager fileManager,
-            ExtractionManager extractionManager)
+            ExtractionManager extractionManager,
+            Callback callback)
         {
             _fileManager = fileManager;
             _extractionManager = extractionManager;
+            _callback = callback;
         }
 
-        public async Task<DocumentResultResponse> Process(NewFileToProcess newItem)
+        public async Task Process(NewFileToProcess newItem)
         {
-            try{
+            var result = await ExtractOcr(newItem).ConfigureAwait(false);
+            await _callback.Send(result, newItem.CallbackUrl).ConfigureAwait(false);
+        }
+
+        private async Task<DocumentResultResponse> ExtractOcr(NewFileToProcess newItem)
+        {
+            try {
                 var filePath = await _fileManager.Download(newItem.Url).ConfigureAwait(false);
                 var numberOfPages = _fileManager.GetNumberOfPages(filePath);
-                var documentResult = new DocumentResultResponse(numberOfPages);
+                var documentResult = new DocumentResultResponse(numberOfPages, newItem.DocumentIdentifier, newItem.AccessKey);
 
                 var tasks = documentResult.Pages.Select(page => ProcessPage(page, filePath));
                 await Task.WhenAll(tasks).ConfigureAwait(false);
@@ -34,8 +44,8 @@ namespace Extractt.Web.Services
                 documentResult.Success = true;
                 return documentResult;
 
-            }catch(Exception ex) {
-                return new DocumentResultResponse(ex.Message);
+            } catch(Exception ex) {
+                return new DocumentResultResponse(ex.Message, newItem.DocumentIdentifier, newItem.AccessKey);
             }
         }
 

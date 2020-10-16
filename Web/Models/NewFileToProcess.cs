@@ -6,7 +6,14 @@ namespace Extractt.Web.Models
     {
         [Required]
         public string Url { get; set; }
+
         [Required]
         public string AccessKey { get; set; }
+
+        [Required]
+        public string CallbackUrl  { get; set; }
+
+        [Required]
+        public string DocumentIdentifier  { get; set; }
     }
 }

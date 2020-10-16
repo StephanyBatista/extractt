@@ -5,6 +5,11 @@
   </PropertyGroup>
 
   <ItemGroup>
+    <PackageReference Include="Hangfire.Dashboard.Basic.Authentication" Version="1.1.0" />
+    <PackageReference Include="Hangfire.MemoryStorage" Version="1.7.0" />
     <PackageReference Include="itext7" Version="7.1.11" />
+    <PackageReference Include="Hangfire.AspNetCore" Version="1.7.11" />
+    <PackageReference Include="Hangfire.Core" Version="1.7.11" />
+    <PackageReference Include="Hangfire.SqlServer" Version="1.7.11" />
   </ItemGroup>
 </Project>

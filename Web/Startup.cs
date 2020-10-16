@@ -1,10 +1,16 @@
-﻿using Extractt.Web.Infra;
+﻿using System;
+using Extractt.Web.Infra;
 using Extractt.Web.Services;
+using Hangfire;
+using Hangfire.MemoryStorage;
+using Hangfire.SqlServer;
+using HangfireBasicAuthenticationFilter;
 using Microsoft.AspNetCore.Builder;
 using Microsoft.AspNetCore.Hosting;
 using Microsoft.Extensions.Configuration;
 using Microsoft.Extensions.DependencyInjection;
 using Microsoft.Extensions.Hosting;
+using Web.Infra;
 
 namespace Extractt
 {
@@ -25,6 +31,9 @@ namespace Extractt
                 options.AddPolicy("Cors",
                     builder => builder.AllowAnyOrigin());
             });
+            ConfigureHangfire(services);
+
+            services.AddHangfireServer();
 
             services.AddControllers();
             services.AddSingleton<ProcessDocument, ProcessDocument>();
@@ -32,6 +41,36 @@ namespace Extractt
             services.AddSingleton<ExtractionManager, ExtractionManager>();
             services.AddSingleton<FileManager, FileManager>();
             services.AddSingleton<Cognitive, Cognitive>();
+            services.AddSingleton<Callback, Callback>();
+        }
+
+        private static void ConfigureHangfire(IServiceCollection services)
+        {
+            var useSqlServer = !string.IsNullOrEmpty(EnvironmentVariables.HangfireConnection);
+            if (useSqlServer)
+            {
+                services.AddHangfire(configuration => configuration
+                .SetDataCompatibilityLevel(CompatibilityLevel.Version_170)
+                .UseSimpleAssemblyNameTypeSerializer()
+                .UseRecommendedSerializerSettings()
+                .UseSqlServerStorage(EnvironmentVariables.HangfireConnection, new SqlServerStorageOptions
+                {
+                    CommandBatchMaxTimeout = TimeSpan.FromMinutes(5),
+                    SlidingInvisibilityTimeout = TimeSpan.FromMinutes(5),
+                    QueuePollInterval = TimeSpan.Zero,
+                    UseRecommendedIsolationLevel = true,
+                    UsePageLocksOnDequeue = true,
+                    DisableGlobalLocks = true,
+                }));
+            }
+            else
+            {
+                services.AddHangfire(configuration => configuration
+                .SetDataCompatibilityLevel(CompatibilityLevel.Version_170)
+                .UseSimpleAssemblyNameTypeSerializer()
+                .UseRecommendedSerializerSettings()
+                .UseMemoryStorage());
+            }
         }
 
         // This method gets called by the runtime. Use this method to configure the HTTP request pipeline.
@@ -41,12 +80,24 @@ namespace Extractt
             {
                 app.UseDeveloperExceptionPage();
             }
-            else if(env.IsProduction())
+            else if (env.IsProduction())
+            {
                 app.UseHttpsRedirection();
+            }
 
             app.UseCors("Cors");
 
             app.UseRouting();
+
+            var dashboardOption = new DashboardOptions
+            {
+                Authorization = new[] {
+                    new HangfireCustomBasicAuthenticationFilter{ 
+                        User= EnvironmentVariables.HangfireUser, Pass= EnvironmentVariables.HangfirePassword 
+                    }
+                }
+            };
+            app.UseHangfireDashboard("/hangfire", dashboardOption);
 
             app.UseAuthorization();
             app.UseEndpoints(endpoints => endpoints.MapControllers());
