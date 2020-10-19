@@ -17,12 +17,13 @@ namespace Web.Infra
         {
             Console.WriteLine($"Url to response client: {callbackUrl}");
             var resultAtJson = JsonConvert.SerializeObject(documentResult);
-            Console.WriteLine($"Result At Json: {resultAtJson}");
             var content = new StringContent(resultAtJson, Encoding.UTF8, "application/json");
             content.Headers.ContentType = new MediaTypeHeaderValue("application/json");
             var response = await client.PutAsync(callbackUrl, content).ConfigureAwait(false);
-            if(response.StatusCode != HttpStatusCode.OK)
-                throw new Exception("Error to response client");
+            if(response.StatusCode != HttpStatusCode.OK) {
+                var clientResponse = await response.Content.ReadAsStringAsync().ConfigureAwait(false);
+                throw new Exception($"Error to response client: {clientResponse}");
+            }
         }
     }
 }
