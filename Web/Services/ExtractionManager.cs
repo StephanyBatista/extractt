@@ -12,12 +12,12 @@ namespace Extractt.Web.Services
         {
             _extractionStrategies = new List<IExtractTextStrategy> { pdfToText, cognitive };
         }
-        
+
         public virtual async Task<string> Extract(string filePath, int page)
         {
             foreach (var strategy in _extractionStrategies)
             {
-                var text = await strategy.Exctract(filePath, page);
+                var text = await strategy.Exctract(filePath, page).ConfigureAwait(false);
                 if (text != null)
                     return text;
             }

@@ -1,7 +1,6 @@
-﻿using System.Threading.Tasks;
-using Extractt.Web.Infra;
-using Extractt.Web.Models;
+﻿using Extractt.Web.Models;
 using Extractt.Web.Services;
+using Hangfire;
 using Microsoft.AspNetCore.Mvc;
 
 namespace Extractt.Web.Controllers
@@ -11,31 +10,21 @@ namespace Extractt.Web.Controllers
     public class ProcessController : ControllerBase
     {
         private readonly ProcessDocument _processDocument;
-        public ProcessController(ProcessDocument processDocument)
+        private readonly IBackgroundJobClient _backgroundJobs;
+        public ProcessController(ProcessDocument processDocument,
+            IBackgroundJobClient backgroundJobs)
         {
             _processDocument = processDocument;
+            _backgroundJobs = backgroundJobs;
         }
 
         [HttpPost]
-        public async Task<IActionResult> Get(NewFileToProcess dto)
+        public IActionResult Post(NewFileToProcess dto)
         {
-            var result = await _processDocument.Process(dto).ConfigureAwait(false);
-            return Ok(result);
-        }
+            if (!ModelState.IsValid)
+                return BadRequest("Missing parameters");
 
-        private IActionResult ValidateParameters(NewFileToProcess dto)
-        {
-            if (dto == null)
-                return BadRequest("Model is null");
-
-            if (string.IsNullOrEmpty(dto.Url))
-                return BadRequest("URL is invalid");
-
-            if (dto.AccessKey == null)
-                return BadRequest("Access key is null");
-
-            if (dto.AccessKey != EnvironmentVariables.AccessKey)
-                return BadRequest("Access key is invalid");
+            _backgroundJobs.Enqueue(() => _processDocument.Process(dto));
 
             return Ok();
         }

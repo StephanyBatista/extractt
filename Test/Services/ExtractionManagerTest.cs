@@ -33,7 +33,7 @@ namespace Extractt.Test.Services
         }
 
         [Fact]
-        public void Must_cognitive_be_called_after_pdf_to_text()
+        public void Must_cognitive_be_called_when_pdf_to_text_does_not_process()
         {
             const string textExpected = "Text";
             A.CallTo(() => _pdfToText.Exctract(FilePath, Page)).Returns((string)null);
