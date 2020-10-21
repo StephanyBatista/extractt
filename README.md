@@ -25,7 +25,7 @@ Cognitive Services é uma ferramenta do Azure que tem a função de extrair text
 #### pdftoppm
 Pdftoppm é uma ferramenta para a conversão do pdf para imagem e assim enviar para o Cognitive Services.
 
-Todas essas ferramentas devem estar instaladas na maquina que será utilizada para rodar a aplicação.
+Todas essas ferramentas devem estar instaladas na maquina que será utilizada para rodar a aplicação. Em caso de windows, essas ferramentas já estão na pasta "dependencies-win" e nada precisa ser feito.
 
 
 ## Como o Extractt foi desenvolvido?

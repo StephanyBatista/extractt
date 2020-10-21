@@ -1,4 +1,5 @@
 using System.Diagnostics;
+using System.IO;
 using System.Runtime.InteropServices;
 using System.Threading.Tasks;
 
@@ -16,6 +17,32 @@ namespace Extractt.Web.Utils
         }
 
         private static Process GetProcess(string cmd)
+        {
+            if (RuntimeInformation.IsOSPlatform(OSPlatform.Windows))
+                return ExecuteOnWindows(cmd);
+            else
+                return ExecuteOnLinux(cmd);
+        }
+
+        private static Process ExecuteOnWindows(string cmd)
+        {
+            var arguments = cmd.Replace('\\', '/');
+            var windows = Path.Combine(Directory.GetCurrentDirectory(), "dependencies-win").Replace('\\', '/');
+            var newCmd = $"cd {windows}; ./{arguments};";
+            return new Process()
+            {
+                StartInfo = new ProcessStartInfo
+                {
+                    FileName = "powershell",
+                    Arguments = newCmd,
+                    RedirectStandardOutput = true,
+                    UseShellExecute = false,
+                    CreateNoWindow = true,
+                }
+            };
+        }
+
+        private static Process ExecuteOnLinux(string cmd)
         {
             var arguments = cmd.Replace('\\', '/');
             return new Process()
