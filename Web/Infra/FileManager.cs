@@ -1,6 +1,5 @@
 using System;
 using System.IO;
-using System.Net;
 using System.Net.Http;
 using System.Threading.Tasks;
 using Extractt.Web.Utils;
@@ -10,19 +9,18 @@ namespace Extractt.Web.Infra
 {
     public class FileManager
     {
-        private static HttpClient client = new HttpClient();
-        
+        private static readonly HttpClient client = new HttpClient();
+
         public virtual async Task<string> Download(string url)
         {
             Console.Write($"Downloading file {url}");
-            
-            using var result = await client.GetAsync(url);
+            using var result = await client.GetAsync(url).ConfigureAwait(false);
             if(!result.IsSuccessStatusCode)
                 throw new Exception("Error to download file");
-            var contentStream = await result.Content.ReadAsStreamAsync();
+            var contentStream = await result.Content.ReadAsStreamAsync().ConfigureAwait(false);
             var localPath = $"{Directory.GetCurrentDirectory()}/{Guid.NewGuid().ToString().Substring(0,6)}.pdf";
-            using var file = System.IO.File.Create(localPath);
-            await contentStream.CopyToAsync(file);
+            using var file = File.Create(localPath);
+            await contentStream.CopyToAsync(file).ConfigureAwait(false);
             return localPath;
         }
 
@@ -42,16 +40,16 @@ namespace Extractt.Web.Infra
             return pagePath;
         }
 
-        public virtual async Task Delete(string path)
+        public virtual void Delete(string path)
         {
-            await Task.Run(() => System.IO.File.Delete(path)).ConfigureAwait(false);
+            File.Delete(path);
         }
 
         public async Task<string> GeneratePageInImage(string pdfPath, int page)
         {
-            var imageName = Guid.NewGuid().ToString().Substring(0,6); 
+            var imageName = Guid.NewGuid().ToString().Substring(0,6);
             var localImagePath = Path.Combine(Directory.GetCurrentDirectory(), imageName);
-            await $"pdftoppm {pdfPath} {localImagePath} -jpeg -f {page} -singlefile".Bash().ConfigureAwait(false);
+            await $"pdftoppm {pdfPath} {localImagePath} -jpeg -f {page} -singlefile -r 80".Bash().ConfigureAwait(false);
             return $"{localImagePath}.jpg";
         }
     }

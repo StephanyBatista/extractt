@@ -33,7 +33,7 @@ namespace Extractt
             });
             ConfigureHangfire(services);
 
-            services.AddHangfireServer();
+            services.AddHangfireServer(options => options.WorkerCount = 2);
 
             services.AddControllers();
             services.AddSingleton<ProcessDocument, ProcessDocument>();
@@ -55,7 +55,7 @@ namespace Extractt
                 .UseRecommendedSerializerSettings()
                 .UseSqlServerStorage(EnvironmentVariables.HangfireConnection, new SqlServerStorageOptions
                 {
-                    CommandBatchMaxTimeout = TimeSpan.FromMinutes(5),
+                    CommandBatchMaxTimeout = TimeSpan.FromMinutes(60),
                     SlidingInvisibilityTimeout = TimeSpan.FromMinutes(5),
                     QueuePollInterval = TimeSpan.Zero,
                     UseRecommendedIsolationLevel = true,

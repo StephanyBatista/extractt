@@ -1,3 +1,4 @@
+using System;
 using System.Diagnostics;
 using System.IO;
 using System.Runtime.InteropServices;
@@ -29,6 +30,7 @@ namespace Extractt.Web.Utils
             var arguments = cmd.Replace('\\', '/');
             var windows = Path.Combine(Directory.GetCurrentDirectory(), "dependencies-win").Replace('\\', '/');
             var newCmd = $"cd {windows}; ./{arguments};";
+            Console.WriteLine(newCmd);
             return new Process()
             {
                 StartInfo = new ProcessStartInfo

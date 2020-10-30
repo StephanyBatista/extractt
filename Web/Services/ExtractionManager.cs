@@ -1,6 +1,9 @@
-﻿using System.Collections.Generic;
+﻿using System;
+using System.Collections.Generic;
+using System.Diagnostics;
 using System.Threading.Tasks;
 using Extractt.Web.Infra;
+using Extractt.Web.Utils;
 
 namespace Extractt.Web.Services
 {
@@ -18,6 +21,7 @@ namespace Extractt.Web.Services
             foreach (var strategy in _extractionStrategies)
             {
                 var text = await strategy.Exctract(filePath, page).ConfigureAwait(false);
+
                 if (text != null)
                     return text;
             }

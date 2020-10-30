@@ -3,6 +3,7 @@ using System.Linq;
 using System.Threading.Tasks;
 using Extractt.Web.Infra;
 using Extractt.Web.Models;
+using Extractt.Web.Utils;
 using Web.Infra;
 
 namespace Extractt.Web.Services
@@ -31,21 +32,40 @@ namespace Extractt.Web.Services
 
         private async Task<DocumentResultResponse> ExtractOcr(NewFileToProcess newItem)
         {
-            try {
+            try
+            {
                 var filePath = await _fileManager.Download(newItem.Url).ConfigureAwait(false);
+                var text = await $"pdftotext {filePath} -".Bash().ConfigureAwait(false);
                 var numberOfPages = _fileManager.GetNumberOfPages(filePath);
                 var documentResult = new DocumentResultResponse(numberOfPages, newItem.DocumentIdentifier, newItem.AccessKey);
-
-                var tasks = documentResult.Pages.Select(page => ProcessPage(page, filePath));
-                await Task.WhenAll(tasks).ConfigureAwait(false);
+                await RunInParallel(filePath, numberOfPages, documentResult).ConfigureAwait(false);
 
                 Console.WriteLine($"Finishing document with URL {newItem.Url}");
-                await _fileManager.Delete(filePath).ConfigureAwait(false);
+                _fileManager.Delete(filePath);
                 documentResult.Success = true;
                 return documentResult;
 
-            } catch(Exception ex) {
+            }
+            catch (Exception ex) {
                 return new DocumentResultResponse(ex.Message, newItem.DocumentIdentifier, newItem.AccessKey);
+            }
+        }
+
+        private async Task RunInParallel(string filePath, int numberOfPages, DocumentResultResponse documentResult)
+        {
+            var numberOfItensInParallel = numberOfPages > EnvironmentVariables.NumberMaxDocumentsInParallel ? 
+                EnvironmentVariables.NumberMaxDocumentsInParallel : numberOfPages;
+            var skip = 0;
+            var processed = 0;
+            while (numberOfItensInParallel > 0)
+            {
+                var tasks = documentResult.Pages.Skip(skip).Take(numberOfItensInParallel).Select(page => ProcessPage(page, filePath));
+                await Task.WhenAll(tasks).ConfigureAwait(false);
+                processed += numberOfItensInParallel;
+                skip += numberOfItensInParallel;
+                numberOfItensInParallel = numberOfPages > processed + numberOfItensInParallel ?
+                    numberOfItensInParallel :
+                    numberOfPages - processed;
             }
         }
 
